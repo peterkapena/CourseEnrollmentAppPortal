@@ -1,0 +1,43 @@
+﻿@page "/mycourses"
+@inherits StudentCoursesPageBase
+
+@if (User is not null && User.Email is not null)
+{
+    @if (Courses is not null && Courses.Count > 0)
+    {
+        <MudGrid>
+            @foreach (var item in Courses)
+            {
+                <MudItem xs="12" sm="6" md="4" lg="3">
+                    <MudPaper MinHeight="350px">
+                        <MudCardHeader>
+                            <CardHeaderContent>
+                                <MudText Typo="Typo.h6">@item.Title</MudText>
+                            </CardHeaderContent>
+                            <CardHeaderActions>
+                                <MudIconButton Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Default" />
+                            </CardHeaderActions>
+                        </MudCardHeader>
+                        <MudCardContent>
+                            <MudText>@item.Description.</MudText>
+                        </MudCardContent>
+                        <MudCardActions>
+                            <MudButton Variant="Variant.Text" Color="Color.Error" OnClick="()=>Deregister(item.Id)" Style="text-transform:lowercase">Deregister</MudButton>
+                            <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="()=>GoToCourse(item.Id)">Access course</MudButton>
+                        </MudCardActions>
+                    </MudPaper>
+
+                </MudItem>
+            }
+        </MudGrid>
+    }
+    else
+    {
+        <MudAlert>You are not enrolled on any course yet. Visit available courses and click on one to enroll.</MudAlert>
+    }
+}
+else
+{
+    <MudProgressCircular></MudProgressCircular>
+}
+

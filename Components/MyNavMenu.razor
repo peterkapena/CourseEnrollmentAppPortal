@@ -1,0 +1,32 @@
+﻿@using CourseEnrollmentApp_Portal.Models
+@using CourseEnrollmentApp_Portal.Services
+@using static CourseEnrollmentApp_Portal.Services.Common
+@inject AuthService authService
+@inject NavigationManager NavigationManager
+
+<MudPaper Width="250px" Class="py-3" Elevation="0">
+    <MudNavMenu>
+        <MudText Typo="Typo.h6" Class="px-4">Course Enrollment</MudText>
+        @if (User?.Email is not null)
+        {
+            <MudText Typo="Typo.body2" Class="px-4 mud-text-secondary">@User.Email</MudText>
+        }
+        <MudDivider Class="my-2" />
+
+        <MudNavLink Href="/">Available courses</MudNavLink>
+        <MudNavLink OnClick="()=>NavigationManager.NavigateTo(PAGES.mycourses.ToString())">My courses</MudNavLink>
+        <MudDivider Class="my-2" />
+        <MudNavLink OnClick="Logout">Log out</MudNavLink>
+
+    </MudNavMenu>
+</MudPaper>
+
+@code {
+    [CascadingParameter] public User User { get; set; }
+
+    private async Task Logout()
+    {
+        await authService.Signout();
+        NavigationManager.NavigateTo("/", true, true);
+    }
+}

@@ -1,0 +1,100 @@
+﻿@page "/signup"
+@inherits SignupBase
+@using System.Text.RegularExpressions
+@using System.ComponentModel.DataAnnotations
+@using static CourseEnrollmentApp_Portal.Services.Common
+
+<MudPaper Height="700px" Width="100%">
+    <MudContainer MaxWidth="MaxWidth.Small">
+        <MudCard>
+            <MudCardHeader>
+                <CardHeaderContent>
+                    <MudText Typo="Typo.h6">Register</MudText>
+                </CardHeaderContent>
+            </MudCardHeader>
+            <MudCardContent>
+                <MudForm @ref="Form" @bind-IsValid="@success" @bind-Errors="@errors">
+                    <MudTextField @bind-Value="Name" Immediate="true" Label="Full Name" Required="true" MaxLength="50" />
+
+                    <MudTextField Label="Email" Required="true" RequiredError="Email is required!"
+                                  Validation="@(new EmailAddressAttribute() {ErrorMessage = "The email address is invalid"})" @bind-Value="Email" />
+
+                    <MudTextField T="string" Label="Password" HelperText="Choose a strong password" @ref="pwField1"
+                                  InputType="InputType.Password"
+                                  Validation="@(new Func<string, IEnumerable<string>>(PasswordStrength))" Required="true"
+                                  RequiredError="Password is required!" />
+                    <MudTextField T="string"
+                                  Label="Password" HelperText="Repeat the password" InputType="InputType.Password"
+                                  Validation="@(new Func<string, string>(PasswordMatch))" />
+
+                </MudForm>
+            </MudCardContent>
+            <div class="d-flex align-center justify-space-between pa-2">
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="HandleLogin" Class="ml-auto">Sign up</MudButton>
+                &nbsp;or &nbsp;
+                <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="()=>NavigationManager.NavigateTo(PAGES.signin.ToString())" Style="text-transform:lowercase" Class=" ">Sign in</MudButton>
+            </div>
+            @if (signingFailed)
+            {
+                <MudAlert Severity="Severity.Error"> Signin failed.Please contact support </MudAlert>
+            }
+            else if (signupSuccess && !signingFailed)
+            {
+                <MudAlert Severity="Severity.Success">You have signed up. Please click on sign in and use your password and email address to sign in and enroll on a course.</MudAlert>
+            }
+        </MudCard>
+
+    </MudContainer>
+</MudPaper>
+
+@code {
+    bool success;
+    bool signingFailed;
+    bool signupSuccess;
+    string[] errors = { };
+    MudTextField<string> pwField1;
+    public MudForm Form { get; set; }
+
+    private IEnumerable<string> PasswordStrength(string pw)
+    {
+        if (string.IsNullOrWhiteSpace(pw))
+        {
+            yield return "Password is required!";
+            yield break;
+        }
+        if (pw.Length < 8)
+            yield return "Password must be at least of length 8";
+        if (!Regex.IsMatch(pw, @"[A-Z]"))
+            yield return "Password must contain at least one capital letter";
+        if (!Regex.IsMatch(pw, @"[a-z]"))
+            yield return "Password must contain at least one lowercase letter";
+        if (!Regex.IsMatch(pw, @"[0-9]"))
+            yield return "Password must contain at least one digit";
+    }
+
+    private string PasswordMatch(string arg)
+    {
+        if (pwField1.Value != arg)
+            return "Passwords don't match";
+        return null;
+    }
+    protected async Task HandleLogin()
+    {
+        try
+        {
+            signingFailed = false;
+            await Form.Validate();
+            if (Form.IsValid)
+            {
+                var success = await AuthService.Signup(Email, pwField1.Value, Name);
+                signupSuccess = success;
+                signingFailed = !success;
+            }
+        }
+        catch (Exception ex)
+        {
+            signingFailed = true;
+            Console.WriteLine(ex);
+        }
+    }
+}

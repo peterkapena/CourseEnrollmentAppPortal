@@ -1,0 +1,90 @@
+﻿@page "/signin"
+@inherits SigninBase
+@using System.Text.RegularExpressions
+@using System.ComponentModel.DataAnnotations
+@using static CourseEnrollmentApp_Portal.Services.Common
+
+<MudPaper Height="700px" Width="100%">
+    <MudContainer MaxWidth="MaxWidth.Small">
+        <MudCard>
+            <MudCardHeader>
+                <CardHeaderContent>
+                    <MudText Typo="Typo.h6">Sign in</MudText>
+                </CardHeaderContent>
+            </MudCardHeader>
+            <MudCardContent>
+                <MudForm @ref="Form" @bind-IsValid="@success" @bind-Errors="@errors">
+                    <MudTextField Label="Email" Required="true" RequiredError="Email is required!"
+                                  Validation="@(new EmailAddressAttribute() {ErrorMessage = "The email address is invalid"})" @bind-Value="Email" />
+                    <MudTextField Label="Password" HelperText="Choose a strong password" @ref="pwField1"
+                                  InputType="InputType.Password"
+                                  Validation="@(new Func<string, IEnumerable<string>>(PasswordStrength))" Required="true"
+                                  RequiredError="Password is required!" @bind-Value="Password" />
+
+                </MudForm>
+            </MudCardContent>
+            <div class="d-flex align-center justify-space-between pa-2">
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="HandleLogin" Class="ml-auto">Sign in</MudButton>
+                &nbsp;or &nbsp;
+                <MudButton Variant="Variant.Text" Color="Color.Primary" Style="text-transform:lowercase" OnClick="()=>NavigationManager.NavigateTo(PAGES.signup.ToString())">sign up</MudButton>
+            </div>
+            @if (signingFailed)
+            {
+                <MudAlert Severity="Severity.Error"> Signin failed. Try again, otherwise contact support.</MudAlert>
+            }
+        </MudCard>
+
+    </MudContainer>
+</MudPaper>
+
+
+@code {
+    bool success;
+    bool signingFailed;
+    string[] errors = { };
+    MudTextField<string> pwField1;
+    public MudForm Form { get; set; }
+
+    private IEnumerable<string> PasswordStrength(string pw)
+    {
+        if (string.IsNullOrWhiteSpace(pw))
+        {
+            yield return "Password is required!";
+            yield break;
+        }
+        if (pw.Length < 8)
+            yield return "Password must be at least of length 8";
+        if (!Regex.IsMatch(pw, @"[A-Z]"))
+            yield return "Password must contain at least one capital letter";
+        if (!Regex.IsMatch(pw, @"[a-z]"))
+            yield return "Password must contain at least one lowercase letter";
+        if (!Regex.IsMatch(pw, @"[0-9]"))
+            yield return "Password must contain at least one digit";
+    }
+
+    protected async Task HandleLogin()
+    {
+        try
+        {
+            signingFailed = false;
+            await Form.Validate();
+            if (Form.IsValid)
+            {
+                var Success = await AuthService.Signin(Email, Password);
+                if (Success)
+                {
+                    NavigationManager.NavigateTo("/", true, true);
+                }
+                else
+                {
+                    signingFailed = true;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            signingFailed = true;
+            Console.WriteLine(ex);
+        }
+    }
+}

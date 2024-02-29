@@ -1,0 +1,31 @@
+﻿@page "/course/{Id:long}"
+@inherits ICoursePageBase
+
+@if (User is not null && User.Email is not null)
+{
+    @if (Id > 0 && Course is not null)
+    {
+        <MudCard>
+            <MudCardMedia Image="https://educourse.co.za/wp-content/uploads/2023/09/study-a-online-course-for-free-600x338.jpg" Height="200" />
+            <MudCardContent>
+                <MudText Typo="Typo.h5">@Course.Title</MudText>
+                <MudText Typo="Typo.body2">@Course.Description</MudText>
+            </MudCardContent>
+            <MudCardActions>
+                @if (StudentEnrollment is null)
+                {
+                    <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="Enroll">Enroll</MudButton>
+                }
+            </MudCardActions>
+            @if (ErrorHappened)
+            {
+                <MudAlert Severity="Severity.Error">An error happened. Please Try again, otherwise contact support.</MudAlert>
+            }
+
+        </MudCard>
+    }
+}
+else
+{
+    <MudProgressCircular></MudProgressCircular>
+}
